@@ -74,7 +74,7 @@ class RpcRouting(
 
         val existing = rpcFunctions.putIfAbsent(name, method)
         if (existing != null && existing != method) {
-            error("RPC name collision: '$name' is already registered to ${existing.declaringClass.name}.${existing.name}")
+            error("RPC name collision: '$name' is already registered")
         }
         if (existing == null) {
             routing.post("$BASE_PATH/$name") {
