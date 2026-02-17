@@ -25,7 +25,7 @@ class RpcRouting(
 
     companion object {
 
-        private val basePath = "/rpc"
+        private const val BASE_PATH = "/rpc"
 
         fun Routing.rpc(init: RpcRouting.() -> Unit) {
             RpcRouting(this).init()
@@ -40,7 +40,7 @@ class RpcRouting(
         fun functionEndpoint(function: RpcFunction): String {
             val method = (function as KFunction<*>).javaMethod!!
             val name = method.declaringClass.simpleName + "." + (function as KFunction<*>).name
-            return "$basePath/$name"
+            return "$BASE_PATH/$name"
         }
     }
 
@@ -77,7 +77,7 @@ class RpcRouting(
             error("RPC name collision: '$name' is already registered to ${existing.declaringClass.name}.${existing.name}")
         }
         if (existing == null) {
-            routing.post("$basePath/$name") {
+            routing.post("$BASE_PATH/$name") {
                 val params = call.receiveParameters()
                 val response = function(params)
                 call.respondHtmx {
