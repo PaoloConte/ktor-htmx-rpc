@@ -46,7 +46,29 @@ class RpcRouting(
 
     private val rpcFunctions = ConcurrentMap<String, Method>()
 
-    fun action(function: RpcFunction, overrideName: String? = null) {
+    /**
+     * Register a single RPC function as a ktor endpoint
+     */
+    fun action(function: RpcFunction) {
+        registerAction(function)
+    }
+
+    /**
+     * Register all functions in the object that match the [RpcFunction] signature
+     * as ktor endpoints
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun registerAll(obj: Any) {
+        obj::class.memberFunctions.forEach { func ->
+            if (func.returnType != typeOf<RpcResponse>()) return@forEach
+            if (func.parameters.size != 2) return@forEach
+            if (func.parameters[1].type != typeOf<Parameters>()) return@forEach
+            val wrapper = FuncWrapper(obj, func as KFunction<RpcResponse>)
+            registerAction(wrapper::callSuspend, func.javaMethod!!.declaringClass.simpleName+"."+func.name)
+        }
+    }
+
+    private fun registerAction(function: RpcFunction, overrideName: String? = null) {
         val method = (function as KFunction<*>).javaMethod!!
         val name = overrideName ?: (method.declaringClass.simpleName + "." + (function as KFunction<*>).name)
 
@@ -72,20 +94,6 @@ class RpcRouting(
     private class FuncWrapper(val obj: Any, val func: KFunction<RpcResponse>) {
         suspend fun callSuspend(params: Parameters): RpcResponse {
             return func.callSuspend(obj, params)
-        }
-    }
-
-    /**
-     * Register all functions in the object that match the [RpcFunction] signature
-     */
-    @Suppress("UNCHECKED_CAST")
-    fun registerAll(obj: Any) {
-        obj::class.memberFunctions.forEach { func ->
-            if (func.returnType != typeOf<RpcResponse>()) return@forEach
-            if (func.parameters.size != 2) return@forEach
-            if (func.parameters[1].type != typeOf<Parameters>()) return@forEach
-            val wrapper = FuncWrapper(obj, func as KFunction<RpcResponse>)
-            action(wrapper::callSuspend, func.javaMethod!!.declaringClass.simpleName+"."+func.name)
         }
     }
 }
