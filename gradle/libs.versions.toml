@@ -2,6 +2,8 @@
 kotlin = "2.3.10"
 ktor = "3.0.3"
 logback = "1.5.12"
+maven-publish = "0.28.0"
+dokka = "2.1.0"
 
 [libraries]
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
@@ -10,3 +12,5 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
