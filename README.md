@@ -1,132 +1,165 @@
-# HTMX + Ktor — Pattern RPC con OOB Swaps
+# Ktor HTMX RPC
 
-## L'idea
+A Kotlin library for building HTMX-powered applications using a **Server-Side RPC** pattern with **Out-of-Band (OOB) Swaps**.
 
-Il client non decide **dove** mettere le risposte. Fa solo:
+## The Core Concept
 
-```html
-<button hx-post="/rpc/contactPage.startEdit"
-        hx-vals='{"contactId": 42}'
-        hx-swap="none">
-    Modifica
-</button>
+In traditional HTMX, the client often specifies *where* the response should be placed using `hx-target` and `hx-swap`.
+
+In the **RPC Pattern**, the client simply triggers an action:
+
+```kotlin
+button("btn", "btn-primary") {
+    rpc = MyPage::performAction
+    hxVals = """{"id": "42"}"""
+    +"Execute"
+}
 ```
 
-`hx-swap="none"` → il client non fa nulla con la risposta.
-Il server decide tutto via **OOB (Out-of-Band) swaps**.
+The server decides exactly which parts of the page need to be updated by returning **Out-of-Band (OOB) fragments**. This allows a single action to update multiple unrelated elements (e.g., updating a table row, a sidebar counter, and showing a notification) without the client needing to know the layout structure.
 
-## Architettura
+## Features
 
-```
-Client (HTML + HTMX)           Server (Kotlin/Ktor)
+- **Type-Safe RPC**: Bind buttons and inputs directly to Kotlin functions using reflection-based routing.
+- **OOB Swaps by Default**: Easily update any element in the DOM by its ID from any server response.
+- **Lightweight HTML DSL**: A custom, minimal, and fast DSL for building HTML and HTMX responses in Kotlin.
+- **Header Helpers**: Built-in support for HTMX response headers (`HX-Trigger`, `HX-Redirect`, `HX-Push-Url`, etc.).
+- **Ktor Integration**: Seamlessly integrates into Ktor's routing.
+
+## Architecture
+
+```text
+Client (HTML + HTMX)           Server (Ktor + Library)
 ─────────────────────           ─────────────────────
                                 
-button.click ──────────────►  /rpc/contactPage.saveEdit
+button.click ──────────────►  POST /rpc/MyPage.saveData
   hx-swap="none"                    │
-  hx-vals={contactId: 42}          ▼
-                                ContactPage.saveEdit()
+  hx-vals={id: 42}                  ▼
+                               MyPage.saveData()
                                     │
-                                    ├─ business logic
+                                    ├─ Business Logic
                                     │
                                     ├─ respondHtmx {
-                                    │    replaceElement("#contact-42") { ... }
-                                    │    updateContent("#contact-count") { ... }
-                                    │    toast("Salvato!", "success")
+                                    │    replace { rowComponent(updated) }
+                                    │    update("#count") { +"Total: 5" }
+                                    │    triggerEvent("data-updated")
                                     │  }
                                     │
                                     ▼
-◄──────────────────────────  HTML con hx-swap-oob su ogni div
-  HTMX processa ogni
-  fragment OOB e aggiorna
-  il DOM automaticamente
+◄──────────────────────────  HTML fragments with hx-swap-oob
+  HTMX processes each
+  OOB fragment and updates
+  the DOM automatically.
 ```
 
-## Struttura
+## Key Components
 
-```
-src/main/kotlin/
-├── core/
-│   ├── HtmxDsl.kt         # DSL: htmxResponse { oobSwap(...) }, respondHtmx { ... }
-│   └── RpcRouter.kt        # Router: rpcRoutes("pageName") { action("name") { ... } }
-├── model/
-│   └── Contact.kt          # Domain model
-├── service/
-│   └── ContactService.kt   # Business logic (in-memory per demo)
-├── pages/
-│   ├── ContactPage.kt      # ⭐ RPC handler — tutte le azioni della pagina contatti
-│   └── fragments/
-│       └── ContactFragments.kt  # Componenti HTML riutilizzabili (kotlinx.html)
-└── app/
-    └── Application.kt      # Ktor setup, layout, routing
+### 1. RPC Routing
+
+Register an entire object's methods as RPC endpoints:
+
+```kotlin
+routing {
+    rpc {
+        registerAll(MyPage) // Registers all matching suspend functions
+    }
+}
 ```
 
-## I file chiave
+An RPC function signature looks like this:
 
-### `core/HtmxDsl.kt` — Il DSL
+```kotlin
+suspend fun performAction(params: Parameters): RpcResponse {
+    val id = params["id"] ?: error("Missing ID")
+    // ... logic ...
+    return {
+        replace { itemRow(updatedItem) }
+        triggerEvent("action-completed")
+    }
+}
+```
+
+### 2. The HTMX DSL
+
+The `respondHtmx` builder allows you to perform complex DOM updates in a single response:
 
 ```kotlin
 call.respondHtmx {
-    replaceElement("#contact-42") { contactRow(contact) }  // outerHTML
-    updateContent("#stats") { +"Totale: 5" }               // innerHTML
-    append("#list") { newItem(item) }                       // beforeend
-    removeElement("#item-3")                                // delete
-    toast("Fatto!", "success")                              // prepend a #toast-area
-    redirect("/login")                                      // HX-Redirect header
-    pushUrl("/contacts/42")                                 // aggiorna URL bar
+    // Replace an element (default strategy: outerHTML)
+    replace { itemRow(item) } 
+    
+    // Update specific parts of the DOM using custom strategies
+    tbody("item-list", BeforeEnd) { newItemRow(item) }
+    
+    // Shorthand to update any element by ID (default strategy: innerHTML)
+    update("#counter") { +"10 Items" }
+
+    // Remove an element
+    removeElement("#item-3")
+    
+    // Set HTMX headers
+    triggerEvent("items-updated")
+    redirect("/dashboard")
+    pushUrl("/items/42")
 }
 ```
 
-### `core/RpcRouter.kt` — Il routing
+### 3. Lightweight HTML DSL
+
+The library includes a simple, type-safe HTML DSL that is optimized for HTMX:
 
 ```kotlin
-fun Route.contactPageRoutes() = rpcRoutes("contactPage") {
-    action("startEdit") { call -> ... }    // POST /rpc/contactPage.startEdit
-    action("saveEdit") { call -> ... }     // POST /rpc/contactPage.saveEdit
-    action("search") { call -> ... }       // POST /rpc/contactPage.search
+fun Tag.itemRow(item: Item) = tr {
+    id = "item-${item.id}"
+    td { +item.name }
+    td {
+        button("btn-danger") {
+            rpc = MyPage::deleteItem
+            hxVals = """{"id": "${item.id}"}"""
+            +"Delete"
+        }
+    }
 }
 ```
 
-### `pages/ContactPage.kt` — Le azioni
+## Why this approach?
 
-Ogni azione sa esattamente quali parti del DOM aggiornare perché
-conosce il contesto della pagina. Il client non specifica target/swap.
+### Advantages
+- **Single Source of Truth**: The server controls the UI state and layout entirely.
+- **Decoupled Client**: The HTML doesn't need to know where responses go, making layout changes easier.
+- **Multiple Updates**: Easily update many disparate parts of the page in response to a single user action.
+- **Type Safety**: Use Kotlin's type system for both your business logic and your UI components.
 
-## Come funziona il rendering OOB
+### Considerations
+- **DOM IDs**: The server must be aware of DOM element IDs to perform OOB swaps.
+- **Coupling**: There is tighter coupling between the server logic and the specific UI layout compared to a pure REST/HTMX approach.
 
-`HtmxResponse.render()` genera HTML tipo:
+## Getting Started
 
-```html
-<div id="contact-42" hx-swap-oob="outerHTML">
-    <tr>...</tr>
-</div>
-<div id="contact-count" hx-swap-oob="innerHTML">
-    Contatti: 5
-</div>
-<div id="toast-area" hx-swap-oob="afterbegin">
-    <div class="toast toast-success">Salvato!</div>
-</div>
+### Installation
+
+Add the dependency to your `build.gradle.kts`:
+
+```kotlin
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("io.paoloconte:ktor-htmx-rpc:1.0")
+}
 ```
 
-HTMX intercetta ogni elemento con `hx-swap-oob` e lo processa
-indipendentemente, aggiornando il DOM nei punti giusti.
+### Run the Example
 
-## Run
+The project includes a complete "Contact Manager" example. To run it:
 
 ```bash
-./gradlew run
-# → http://localhost:8080
+./gradlew :example:run
 ```
 
-## Trade-off di questo approccio
+Visit `http://localhost:8080` to see it in action.
 
-**Vantaggi:**
-- Il server è la single source of truth per il layout
-- Cambi il layout? Modifichi solo il server
-- Il client HTML è semplicissimo — solo `hx-post` + `hx-swap="none"`
-- Nessuna logica lato client su dove mettere le risposte
+## License
 
-**Svantaggi:**
-- Il server deve conoscere gli ID del DOM
-- Leggendo l'HTML non capisci cosa succede al click — devi leggere il server
-- Più accoppiamento server↔layout rispetto al pattern REST classico HTMX
-- OOB non supporta CSS selectors complessi — solo ID
+MIT License - see [LICENSE](LICENSE) for details.
