@@ -13,7 +13,7 @@ fun Tag.contactRow(contact: Contact): Tag {
         td("px-4", "py-3") { +contact.email }
         td("px-4", "py-3") { +contact.phone }
         td("px-4", "py-3") {
-            button(cssClasses = arrayOf("btn-icon")) {
+            button("btn-icon") {
                 rpc = ContactPage::toggleFavorite
                 hxVals = """{"contactId": "${contact.id}"}"""
                 //hxSwap = "outerHTML"
@@ -23,13 +23,13 @@ fun Tag.contactRow(contact: Contact): Tag {
             }
         }
         td("px-4", "py-3", "text-right") {
-            button(cssClasses = arrayOf("btn", "btn-sm", "btn-primary")) {
+            button("btn", "btn-sm", "btn-primary") {
                 rpc = ContactPage::startEdit
                 hxVals = """{"contactId": "${contact.id}"}"""
 
                 +"Edit"
             }
-            button(cssClasses = arrayOf("btn", "btn-sm", "btn-danger", "ml-2")) {
+            button("btn", "btn-sm", "btn-danger", "ml-2") {
                 rpc = ContactPage::deleteContact
                 hxVals = """{"contactId": "${contact.id}"}"""
                 hxConfirm = "Delete ${contact.name}?"
@@ -65,14 +65,14 @@ fun Tag.contactEditRow(contact: Contact, errors: Map<String, String> = emptyMap(
         }
         td("px-4", "py-2") {} // Empty favorite column during edit
         td("px-4", "py-2", "text-right") {
-            button(cssClasses = arrayOf("btn", "btn-sm", "btn-success")) {
+            button("btn", "btn-sm", "btn-success") {
                 rpc = ContactPage::saveEdit
                 hxInclude = "[id^='edit-'][id$='-${contact.id}']"
                 hxVals = """{"contactId": "${contact.id}"}"""
 
                 +"Save"
             }
-            button(cssClasses = arrayOf("btn", "btn-sm", "btn-secondary", "ml-2")) {
+            button("btn", "btn-sm", "btn-secondary", "ml-2") {
                 rpc = ContactPage::cancelEdit
                 hxVals = """{"contactId": "${contact.id}"}"""
 
@@ -137,7 +137,7 @@ fun Tag.addContactForm(form: ContactForm? = null, errors: Map<String, String> = 
         }
 
         div("mt-3") {
-            button(cssClasses = arrayOf("btn", "btn-primary")) {
+            button("btn", "btn-primary") {
                 rpc = ContactPage::addContact
                 hxInclude = "[id^='new-contact-']"
 

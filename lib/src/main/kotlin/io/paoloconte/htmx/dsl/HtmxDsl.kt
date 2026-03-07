@@ -38,6 +38,18 @@ class HtmxResponseBuilder : Tag {
         }
     }
 
+    /**
+     * Shorthand for updating any element by its CSS selector (e.g., "#count") using a specific strategy.
+     * Uses a 'div' as the transport tag, which works for most cases (except inside tables).
+     */
+    fun update(selector: String, strategy: SwapStrategy = SwapStrategy.InnerHTML, block: Tag.() -> Unit) {
+        div {
+            id = selector.removePrefix("#")
+            hxSwapOob = strategy.value
+            block()
+        }
+    }
+
     /** Removes an element from the DOM
      * The tag must already have an id set */
     fun removeElement(selector: String) {

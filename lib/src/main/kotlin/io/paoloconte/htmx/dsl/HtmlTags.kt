@@ -11,7 +11,7 @@ private fun Tag.htmlTag(name: String, cssClasses: Array<out String>, block: Tag.
     return child
 }
 
-fun Tag.html(vararg cssClasses: String, block: Tag.() -> Unit = {}) = htmlTag("io/paoloconte/htmx", cssClasses, block)
+fun Tag.html(vararg cssClasses: String, block: Tag.() -> Unit = {}) = htmlTag("html", cssClasses, block)
 fun Tag.head(vararg cssClasses: String, block: Tag.() -> Unit = {}) = htmlTag("head", cssClasses, block)
 fun Tag.body(vararg cssClasses: String, block: Tag.() -> Unit = {}) = htmlTag("body", cssClasses, block)
 fun Tag.title(vararg cssClasses: String, block: Tag.() -> Unit = {}) = htmlTag("title", cssClasses, block)
@@ -114,7 +114,7 @@ fun Tag.input(type: InputType = InputType.text, name: String? = null, vararg css
     return child
 }
 
-fun Tag.button(type: ButtonType = ButtonType.button, vararg cssClasses: String, block: Tag.() -> Unit = {}): Tag {
+fun Tag.button(vararg cssClasses: String, type: ButtonType = ButtonType.button, block: Tag.() -> Unit = {}): Tag {
     val child = HtmlTag("button")
     child.attributes["type"] = type.value
     if (cssClasses.isNotEmpty()) child.attributes["class"] = cssClasses.joinToString(" ")
