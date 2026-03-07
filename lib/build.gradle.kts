@@ -22,6 +22,13 @@ dependencies {
     implementation(libs.ktor.server.core)
 }
 
+dokka {
+    moduleName.set("ktor-htmx-rpc")
+    dokkaSourceSets.configureEach {
+        includes.from(rootProject.file("README.md"))
+    }
+}
+
 
 configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
     configure(
@@ -30,6 +37,7 @@ configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
             sourcesJar = true,
         )
     )
+    coordinates(project.group.toString(), "ktor-htmx-rpc", project.version.toString())
 
     pom {
         inceptionYear.set("2026")

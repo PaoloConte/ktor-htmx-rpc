@@ -8,17 +8,3 @@ allprojects {
         mavenCentral()
     }
 }
-
-
-dependencies {
-    dokka(project(":lib"))
-}
-
-dokka {
-    moduleName.set("kotlin-htmx-rpc")
-    dokkaPublications {
-        html {
-            includes.from("README.md")
-        }
-    }
-}

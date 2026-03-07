@@ -1,4 +1,5 @@
-# Ktor HTMX RPC
+# Module ktor-htmx-rpc
+
 
 A Kotlin library for building HTMX-powered applications using a **Server-Side RPC** pattern with **Out-of-Band (OOB) Swaps**.
 
