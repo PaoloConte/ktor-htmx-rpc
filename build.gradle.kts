@@ -16,4 +16,9 @@ dependencies {
 
 dokka {
     moduleName.set("kotlin-htmx-rpc")
+    dokkaPublications {
+        html {
+            includes.from("README.md")
+        }
+    }
 }
