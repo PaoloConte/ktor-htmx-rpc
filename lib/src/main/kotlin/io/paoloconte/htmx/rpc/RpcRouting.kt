@@ -4,10 +4,7 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.util.collections.*
-import io.paoloconte.htmx.dsl.HtmxResponseBuilder
-import io.paoloconte.htmx.dsl.Tag
-import io.paoloconte.htmx.dsl.hxPost
-import io.paoloconte.htmx.dsl.respondHtmx
+import io.paoloconte.htmx.dsl.*
 import java.lang.reflect.Method
 import kotlin.coroutines.SuspendFunction1
 import kotlin.reflect.KFunction
@@ -34,6 +31,7 @@ class RpcRouting(
         var Tag.rpc: suspend (Parameters) -> RpcResponse
             set(value) {
                 hxPost = functionEndpoint(value)
+                if (hxSwap.isEmpty()) hxSwap = "none"
             }
             get() = error("can't get this")
 

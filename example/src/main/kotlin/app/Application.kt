@@ -41,7 +41,6 @@ fun Tag.fullPage(title: String, content: Tag.() -> Unit) {
         head {
             meta(charset = "utf-8")
             meta(name = "viewport", content = "width=device-width, initial-scale=1")
-            meta(name = "htmx-config", content = "{\"defaultSwapStyle\":\"none\"}")
             title { +title }
 
             // HTMX
