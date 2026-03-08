@@ -45,7 +45,9 @@ class HtmlTag(override val tagName: String) : Tag, Node {
         sb.append('>')
         for (child in children) {
             when (child) {
-                is TextNode -> sb.append(escapeHtml(child.text))
+                is TextNode -> sb.append(
+                    if (tagName in RAW_TEXT_ELEMENTS) child.text else escapeHtml(child.text)
+                )
                 is RawHtml -> sb.append(child.html)
                 is HtmlTag -> child.renderTo(sb)
             }
@@ -66,6 +68,8 @@ fun buildHtml(block: Tag.() -> Unit): String = buildString {
         }
     }
 }
+
+val RAW_TEXT_ELEMENTS = setOf("script", "style")
 
 val VOID_ELEMENTS = setOf(
     "area", "base", "br", "col", "embed", "hr", "img", "input",

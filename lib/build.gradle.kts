@@ -20,6 +20,7 @@ repositories {
 
 dependencies {
     implementation(libs.ktor.server.core)
+    testImplementation(libs.kotlin.test)
 }
 
 dokka {
