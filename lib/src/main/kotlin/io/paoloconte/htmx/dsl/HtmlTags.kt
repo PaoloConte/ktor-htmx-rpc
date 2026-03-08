@@ -104,7 +104,7 @@ fun Tag.colgroup(vararg cssClasses: String, block: Tag.() -> Unit = {}) = htmlTa
 fun Tag.col(block: Tag.() -> Unit = {}) = htmlTag("col", emptyArray(), block)
 fun Tag.form(vararg cssClasses: String, block: Tag.() -> Unit = {}) = htmlTag("form", cssClasses, block)
 
-fun Tag.input(type: InputType = InputType.text, name: String? = null, vararg cssClasses: String, block: Tag.() -> Unit = {}): Tag {
+fun Tag.input(vararg cssClasses: String, type: InputType = InputType.text, name: String? = null, block: Tag.() -> Unit = {}): Tag {
     val child = HtmlTag("input")
     child.attributes["type"] = type.value
     name?.let { child.attributes["name"] = it }

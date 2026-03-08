@@ -44,21 +44,21 @@ fun Tag.contactEditRow(contact: Contact, errors: Map<String, String> = emptyMap(
         id = "contact-${contact.id}"
 
         td("px-4", "py-2") {
-            input(InputType.text, "name", "input") {
+            input("name", "input", type = InputType.text) {
                 id = "edit-name-${contact.id}"
                 value = contact.name
             }
             errors["name"]?.let { span("text-red-500", "text-sm") { +it } }
         }
         td("px-4", "py-2") {
-            input(InputType.email, "email", "input") {
+            input("email", "input", type = InputType.email) {
                 id = "edit-email-${contact.id}"
                 value = contact.email
             }
             errors["email"]?.let { span("text-red-500", "text-sm") { +it } }
         }
         td("px-4", "py-2") {
-            input(InputType.tel, "phone", "input") {
+            input("phone", "input", type = InputType.tel) {
                 id = "edit-phone-${contact.id}"
                 value = contact.phone
             }
@@ -110,7 +110,7 @@ fun Tag.addContactForm(form: ContactForm? = null, errors: Map<String, String> = 
         div("grid", "grid-cols-3", "gap-4") {
             div {
                 label("block", "text-sm", "font-medium") { +"Name" }
-                input(InputType.text, "new-name", "input", "w-full") {
+                input("new-name", "input", "w-full", type = InputType.text) {
                     id = "new-contact-name"
                     value = form?.name ?: ""
                     placeholder = "Mario Rossi"
@@ -119,7 +119,7 @@ fun Tag.addContactForm(form: ContactForm? = null, errors: Map<String, String> = 
             }
             div {
                 label("block", "text-sm", "font-medium") { +"Email" }
-                input(InputType.email, "new-email", "input", "w-full") {
+                input("new-email", "input", "w-full", type = InputType.email) {
                     id = "new-contact-email"
                     value = form?.email ?: ""
                     placeholder = "mario@example.com"
@@ -128,7 +128,7 @@ fun Tag.addContactForm(form: ContactForm? = null, errors: Map<String, String> = 
             }
             div {
                 label("block", "text-sm", "font-medium") { +"Phone" }
-                input(InputType.tel, "new-phone", "input", "w-full") {
+                input("new-phone", "input", "w-full", type = InputType.tel) {
                     id = "new-contact-phone"
                     value = form?.phone ?: ""
                     placeholder = "+39 333 ..."
@@ -167,7 +167,7 @@ fun Tag.statsBar() {
 fun Tag.searchBar() {
     div("mb-4", "relative") {
         id = "search-bar"
-        input(InputType.search, "query", "input", "w-full") {
+        input("query", "input", "w-full", type = InputType.search) {
             id = "search-input"
             placeholder = "Search contacts..."
             rpc = ContactPage::search
