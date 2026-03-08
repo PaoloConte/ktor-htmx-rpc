@@ -27,6 +27,67 @@ The server decides exactly which parts of the page need to be updated by returni
 - **Header Helpers**: Built-in support for HTMX response headers (`HX-Trigger`, `HX-Redirect`, `HX-Push-Url`, etc.).
 - **Ktor Integration**: Seamlessly integrates into Ktor's routing.
 
+## Quick Prototype
+
+Here is a more complete example showing how to manage a list with multiple UI updates:
+
+```kotlin
+data class Todo(val id: Int, val text: String, var done: Boolean)
+
+// 1. Define your UI components as Tag extension functions
+fun Tag.todoRow(todo: Todo) = tr {
+    id = "todo-${todo.id}" // The ID is used for targeted OOB updates
+    td { 
+        if (todo.done) style = "text-decoration: line-through; color: gray;"
+        +todo.text 
+    }
+    td {
+        button {
+            rpc = TodoController::toggle
+            hxVals = """{"id": ${todo.id}}"""
+            +(if (todo.done) "Undo" else "Done")
+        }
+        button {
+            rpc = TodoController::delete
+            hxVals = """{"id": ${todo.id}}"""
+            +"Delete"
+        }
+    }
+}
+
+// 2. Define your RPC logic in an object
+object TodoController {
+    private val todos = mutableListOf(Todo(1, "Check out ktor-htmx-rpc", false))
+
+    suspend fun toggle(params: Parameters): RpcResponse {
+        val id = params["id"]?.toInt() ?: error("Missing ID")
+        val todo = todos.find { it.id == id } ?: return {}
+        todo.done = !todo.done
+
+        return {
+            // We can update multiple unrelated parts of the DOM in one response
+            replace { todoRow(todo) }
+            update("#todo-count") { +"Pending: ${todos.count { !it.done }}" }
+        }
+    }
+
+    suspend fun delete(params: Parameters): RpcResponse {
+        val id = params["id"]?.toInt() ?: error("Missing ID")
+        todos.removeIf { it.id == id }
+
+        return {
+            removeElement("#todo-$id")
+            update("#todo-count") { +"Pending: ${todos.count { !it.done }}" }
+        }
+    }
+}
+
+// 3. Register in Ktor routing
+routing {
+    rpc { registerAll(TodoController) }
+}
+```
+
 ## Architecture
 
 ```text
