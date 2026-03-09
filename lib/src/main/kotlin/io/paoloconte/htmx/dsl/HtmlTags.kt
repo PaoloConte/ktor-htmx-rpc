@@ -145,6 +145,7 @@ fun Tag.video(vararg cssClasses: String, block: Tag.() -> Unit = {}) = htmlTag("
 fun Tag.source(block: Tag.() -> Unit = {}) = htmlTag("source", emptyArray(), block)
 fun Tag.canvas(vararg cssClasses: String, block: Tag.() -> Unit = {}) = htmlTag("canvas", cssClasses, block)
 fun Tag.picture(vararg cssClasses: String, block: Tag.() -> Unit = {}) = htmlTag("picture", cssClasses, block)
+fun Tag.svg(vararg cssClasses: String, block: Tag.() -> Unit = {}) = htmlTag("svg", cssClasses, block)
 fun Tag.figure(vararg cssClasses: String, block: Tag.() -> Unit = {}) = htmlTag("figure", cssClasses, block)
 fun Tag.figcaption(vararg cssClasses: String, block: Tag.() -> Unit = {}) = htmlTag("figcaption", cssClasses, block)
 fun Tag.iframe(vararg cssClasses: String, block: Tag.() -> Unit = {}) = htmlTag("iframe", cssClasses, block)

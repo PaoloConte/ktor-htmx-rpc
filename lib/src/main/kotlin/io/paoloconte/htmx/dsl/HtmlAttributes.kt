@@ -70,6 +70,22 @@ var Tag.role: String
     get() = attributes["role"] ?: ""
     set(value) { attributes["role"] = value }
 
+var Tag.ariaHidden: String
+    get() = attributes["aria-hidden"] ?: ""
+    set(value) { attributes["aria-hidden"] = value }
+
+var Tag.focusable: String
+    get() = attributes["focusable"] ?: ""
+    set(value) { attributes["focusable"] = value }
+
+var Tag.xmlns: String
+    get() = attributes["xmlns"] ?: ""
+    set(value) { attributes["xmlns"] = value }
+
+var Tag.viewBox: String
+    get() = attributes["viewBox"] ?: ""
+    set(value) { attributes["viewBox"] = value }
+
 var Tag.tabIndex: String
     get() = attributes["tabindex"] ?: ""
     set(value) { attributes["tabindex"] = value }

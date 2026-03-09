@@ -82,6 +82,7 @@ fun Tag.audio(id: String, oobSwap: SwapStrategy, block: Tag.() -> Unit = {}) = h
 fun Tag.video(id: String, oobSwap: SwapStrategy, block: Tag.() -> Unit = {}) = htmxTag("video", id, oobSwap, block)
 fun Tag.canvas(id: String, oobSwap: SwapStrategy, block: Tag.() -> Unit = {}) = htmxTag("canvas", id, oobSwap, block)
 fun Tag.picture(id: String, oobSwap: SwapStrategy, block: Tag.() -> Unit = {}) = htmxTag("picture", id, oobSwap, block)
+fun Tag.svg(id: String, oobSwap: SwapStrategy, block: Tag.() -> Unit = {}) = htmxTag("svg", id, oobSwap, block)
 fun Tag.figure(id: String, oobSwap: SwapStrategy, block: Tag.() -> Unit = {}) = htmxTag("figure", id, oobSwap, block)
 fun Tag.figcaption(id: String, oobSwap: SwapStrategy, block: Tag.() -> Unit = {}) = htmxTag("figcaption", id, oobSwap, block)
 fun Tag.iframe(id: String, oobSwap: SwapStrategy, block: Tag.() -> Unit = {}) = htmxTag("iframe", id, oobSwap, block)
