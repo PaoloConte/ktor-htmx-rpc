@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "io.paoloconte"
-version = "1.0"
+version = "0.1"
 
 kotlin {
     jvmToolchain(11)
@@ -41,6 +41,8 @@ configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
     coordinates(project.group.toString(), "ktor-htmx-rpc", project.version.toString())
 
     pom {
+        name.set("Kotlin htmx rpc library")
+        description.set("Kotlin library which implements a full html DSL with htmx attributes and a RPC system")
         inceptionYear.set("2026")
         url.set("https://github.com/PaoloConte/ktor-htmx-rpc")
         licenses {
