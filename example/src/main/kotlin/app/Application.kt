@@ -29,9 +29,10 @@ fun Application.configureRouting() {
             }
         }
 
-        rpc {
-            registerAll(ContactPage)
-          //  ContactPage.register()
+        route("/contacts") {
+            rpc {
+                registerAll(ContactPage)
+            }
         }
     }
 }

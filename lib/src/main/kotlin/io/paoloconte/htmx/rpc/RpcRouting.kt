@@ -5,6 +5,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.collections.*
 import io.paoloconte.htmx.dsl.*
 import java.lang.reflect.Method
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.SuspendFunction1
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.callSuspend
@@ -16,15 +17,18 @@ typealias RpcResponse = HtmxResponseBuilder.() -> Unit
 typealias RpcFunction = SuspendFunction1<ApplicationCall, RpcResponse>
 
 class RpcRouting(
-    private val routing: Routing,
+    private val route: Route,
+    private val basePath: String,
 ) {
 
     companion object {
 
-        private const val BASE_PATH = "/rpc"
+        private val endpointRegistry = ConcurrentHashMap<String, String>()
 
-        fun Routing.rpc(init: RpcRouting.() -> Unit) {
-            RpcRouting(this).init()
+        fun Route.rpc(path: String = "/rpc", init: RpcRouting.() -> Unit) {
+            route(path) {
+                RpcRouting(this, this.toString()).init()
+            }
         }
 
         var Tag.rpc: suspend (ApplicationCall) -> RpcResponse
@@ -35,9 +39,14 @@ class RpcRouting(
             get() = error("can't get this")
 
         fun functionEndpoint(function: RpcFunction): String {
+            val key = functionKey(function)
+            return endpointRegistry[key]
+                ?: error("RPC function '$key' not registered. Call action() or registerAll() before rendering.")
+        }
+
+        private fun functionKey(function: RpcFunction): String {
             val method = (function as KFunction<*>).javaMethod!!
-            val name = method.declaringClass.simpleName + "." + (function as KFunction<*>).name
-            return "$BASE_PATH/$name"
+            return method.declaringClass.simpleName + "." + (function as KFunction<*>).name
         }
     }
 
@@ -74,7 +83,8 @@ class RpcRouting(
             error("RPC name collision: '$name' is already registered")
         }
         if (existing == null) {
-            routing.post("$BASE_PATH/$name") {
+            endpointRegistry[name] = "$basePath/$name"
+            route.post(name) {
                 val response = function(call)
                 call.respondHtmx {
                     response()
