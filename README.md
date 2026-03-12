@@ -59,7 +59,8 @@ fun Tag.todoRow(todo: Todo) = tr {
 object TodoController {
     private val todos = mutableListOf(Todo(1, "Check out ktor-htmx-rpc", false))
 
-    suspend fun toggle(params: Parameters): RpcResponse {
+    suspend fun toggle(call: ApplicationCall): RpcResponse {
+        val params = call.receiveParameters()
         val id = params["id"]?.toInt() ?: error("Missing ID")
         val todo = todos.find { it.id == id } ?: return {}
         todo.done = !todo.done
@@ -71,7 +72,8 @@ object TodoController {
         }
     }
 
-    suspend fun delete(params: Parameters): RpcResponse {
+    suspend fun delete(call: ApplicationCall): RpcResponse {
+        val params = call.receiveParameters()
         val id = params["id"]?.toInt() ?: error("Missing ID")
         todos.removeIf { it.id == id }
 
@@ -131,7 +133,8 @@ routing {
 An RPC function signature looks like this:
 
 ```kotlin
-suspend fun performAction(params: Parameters): RpcResponse {
+suspend fun performAction(call: ApplicationCall): RpcResponse {
+    val params = call.receiveParameters()
     val id = params["id"] ?: error("Missing ID")
     // ... logic ...
     return {

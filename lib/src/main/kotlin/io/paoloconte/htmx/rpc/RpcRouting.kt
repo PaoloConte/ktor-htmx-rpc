@@ -1,7 +1,6 @@
 package io.paoloconte.htmx.rpc
 
-import io.ktor.http.*
-import io.ktor.server.request.*
+import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.util.collections.*
 import io.paoloconte.htmx.dsl.*
@@ -14,7 +13,7 @@ import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.typeOf
 
 typealias RpcResponse = HtmxResponseBuilder.() -> Unit
-typealias RpcFunction = SuspendFunction1<Parameters, RpcResponse>
+typealias RpcFunction = SuspendFunction1<ApplicationCall, RpcResponse>
 
 class RpcRouting(
     private val routing: Routing,
@@ -28,7 +27,7 @@ class RpcRouting(
             RpcRouting(this).init()
         }
 
-        var Tag.rpc: suspend (Parameters) -> RpcResponse
+        var Tag.rpc: suspend (ApplicationCall) -> RpcResponse
             set(value) {
                 hxPost = functionEndpoint(value)
                 if (hxSwap.isEmpty()) hxSwap = "none"
@@ -60,7 +59,7 @@ class RpcRouting(
         obj::class.memberFunctions.forEach { func ->
             if (func.returnType != typeOf<RpcResponse>()) return@forEach
             if (func.parameters.size != 2) return@forEach
-            if (func.parameters[1].type != typeOf<Parameters>()) return@forEach
+            if (func.parameters[1].type != typeOf<ApplicationCall>()) return@forEach
             val wrapper = FuncWrapper(obj, func as KFunction<RpcResponse>)
             registerAction(wrapper::callSuspend, func.javaMethod!!.declaringClass.simpleName+"."+func.name)
         }
@@ -76,8 +75,7 @@ class RpcRouting(
         }
         if (existing == null) {
             routing.post("$BASE_PATH/$name") {
-                val params = call.receiveParameters()
-                val response = function(params)
+                val response = function(call)
                 call.respondHtmx {
                     response()
                 }
@@ -90,7 +88,7 @@ class RpcRouting(
      * to a SuspendFunction that is used to invoke it, same as with [action]
      */
     private class FuncWrapper(val obj: Any, val func: KFunction<RpcResponse>) {
-        suspend fun callSuspend(params: Parameters): RpcResponse {
+        suspend fun callSuspend(params: ApplicationCall): RpcResponse {
             return func.callSuspend(obj, params)
         }
     }

@@ -1,17 +1,18 @@
 package pages
 
-import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.paoloconte.htmx.dsl.*
 import io.paoloconte.htmx.dsl.SwapStrategy.*
 import io.paoloconte.htmx.rpc.RpcResponse
-import io.paoloconte.htmx.rpc.RpcRouting
 import kotlinx.coroutines.delay
 import model.ContactForm
 import service.ContactRepository
 
 object ContactPage {
 
-    suspend fun startEdit(params: Parameters): RpcResponse {
+    suspend fun startEdit(call: ApplicationCall): RpcResponse {
+        val params = call.receiveParameters()
         val id = params["contactId"]?.toIntOrNull() ?: error("no contact id found")
         val contact = ContactRepository.get(id)
         return {
@@ -19,7 +20,8 @@ object ContactPage {
         }
     }
 
-    suspend fun cancelEdit(params: Parameters): RpcResponse {
+    suspend fun cancelEdit(call: ApplicationCall): RpcResponse {
+        val params = call.receiveParameters()
         val id = params["contactId"]?.toIntOrNull() ?: error("no contact id found")
         val contact = ContactRepository.get(id)
         return {
@@ -27,7 +29,8 @@ object ContactPage {
         }
     }
 
-    suspend fun saveEdit(params: Parameters): RpcResponse {
+    suspend fun saveEdit(call: ApplicationCall): RpcResponse {
+        val params = call.receiveParameters()
         val id = params["contactId"]?.toIntOrNull() ?: error("no contact id found")
         val form = ContactForm(
             name = params["name"] ?: error("no name found"),
@@ -60,7 +63,8 @@ object ContactPage {
         }
     }
 
-    suspend fun addContact(params: Parameters): RpcResponse {
+    suspend fun addContact(call: ApplicationCall): RpcResponse {
+        val params = call.receiveParameters()
         val form = ContactForm(
             name = params["new-name"] ?: "",
             email = params["new-email"] ?: "",
@@ -86,7 +90,8 @@ object ContactPage {
         }
     }
 
-    suspend fun deleteContact(params: Parameters): RpcResponse {
+    suspend fun deleteContact(call: ApplicationCall): RpcResponse {
+        val params = call.receiveParameters()
         val id = params["contactId"]?.toIntOrNull() ?: error("no contact id found")
         val contact = ContactRepository.get(id)
         ContactRepository.delete(id)
@@ -98,7 +103,8 @@ object ContactPage {
         }
     }
 
-    suspend fun toggleFavorite(params: Parameters): RpcResponse {
+    suspend fun toggleFavorite(call: ApplicationCall): RpcResponse {
+        val params = call.receiveParameters()
         val id = params["contactId"]?.toIntOrNull() ?: error("no contact id found")
         val contact = ContactRepository.toggleFavorite(id)
 
@@ -112,7 +118,8 @@ object ContactPage {
         }
     }
 
-    suspend fun search(params: Parameters): RpcResponse {
+    suspend fun search(call: ApplicationCall): RpcResponse {
+        val params = call.receiveParameters()
         val query = params["query"] ?: ""
         delay(500) // simulate database call
         val results = if (query.isBlank()) {
@@ -138,31 +145,18 @@ object ContactPage {
         }
     }
 
-    suspend fun getFavouriteCount(params: Parameters): RpcResponse {
+    suspend fun getFavouriteCount(call: ApplicationCall): RpcResponse {
         return {
             reswap("innerHTML")
             +"Favorites: ${ContactRepository.favoriteCount()}"
         }
     }
 
-    suspend fun getContactsCount(params: Parameters): RpcResponse {
+    suspend fun getContactsCount(call: ApplicationCall): RpcResponse {
         return {
             reswap("innerHTML")
             +"Contacts: ${ContactRepository.count()}"
         }
-    }
-
-    context(rpc: RpcRouting)
-    fun register() = with(rpc) {
-        action(::startEdit)
-        action(::cancelEdit)
-        action(::saveEdit)
-        action(::addContact)
-        action(::deleteContact)
-        action(::toggleFavorite)
-        action(::search)
-        action(::getFavouriteCount)
-        action(::getContactsCount)
     }
 
 }
