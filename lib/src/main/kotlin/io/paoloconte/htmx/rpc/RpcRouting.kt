@@ -25,10 +25,26 @@ class RpcRouting(
 
         private val endpointRegistry = ConcurrentHashMap<String, String>()
 
-        fun Route.rpc(path: String = "/rpc", init: RpcRouting.() -> Unit) {
-            route(path) {
-                RpcRouting(this, this.toString()).init()
+        fun Route.rpc(init: RpcRouting.() -> Unit) {
+            RpcRouting(this, this.routePath()).init()
+        }
+
+        /**
+         * Walks the route's parent chain and collects only path segment selectors,
+         * ignoring metadata selectors like authenticate, HTTP method, etc.
+         */
+        private fun Route.routePath(): String {
+            val segments = mutableListOf<String>()
+            var current: Route? = this
+            while (current != null) {
+                val selector = (current as? RoutingNode)?.selector
+                if (selector is PathSegmentConstantRouteSelector) {
+                    segments.add(selector.toString())
+                }
+                current = current.parent
             }
+            segments.reverse()
+            return "/" + segments.joinToString("/")
         }
 
         var Tag.rpc: suspend (ApplicationCall) -> RpcResponse
